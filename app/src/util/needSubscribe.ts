@@ -2,6 +2,7 @@ import {showMessage} from "../dialog/message";
 import {getCloudURL} from "../config/util/about";
 
 export const needLogin = (tip = window.siyuan.languages.needLogin) => {
+    return false;
     if (window.siyuan.user) {
         return false;
     }
