@@ -724,11 +724,12 @@ func InitBoxes() {
 }
 
 func IsSubscriber() bool {
+	return true
 	// return nil != Conf.User && (-1 == Conf.User.UserSiYuanProExpireTime || 0 < Conf.User.UserSiYuanProExpireTime) && 0 == Conf.User.UserSiYuanSubscriptionStatus
-    return true
 }
 
 func IsPaidUser() bool {
+	return true
 	if IsSubscriber() {
 		return true
 	}
