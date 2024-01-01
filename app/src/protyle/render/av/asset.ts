@@ -13,7 +13,7 @@ import {previewImage} from "../../preview/image";
 import {genAVValueHTML} from "./blockAttr";
 import {hideMessage, showMessage} from "../../../dialog/message";
 import {fetchPost} from "../../../util/fetch";
-import {hasClosestByClassName} from "../../util/hasClosest";
+import {hasClosestBlock, hasClosestByClassName} from "../../util/hasClosest";
 
 export const bindAssetEvent = (options: {
     protyle: IProtyle,
@@ -133,7 +133,7 @@ export const updateAssetCell = (options: {
                     // 为空时 cellId 每次请求都不一致
                     cellData.id = item.dataset.id;
                     if (!cellData.value || !cellData.value.mAsset) {
-                        cellData.value = {mAsset: []} as IAVCellValue;
+                        cellData.value = {type: "mAsset", mAsset: []} as IAVCellValue;
                     }
                 } else {
                     cellData = row.cells.find(cellItem => {
@@ -206,7 +206,7 @@ export const updateAssetCell = (options: {
         if (item.classList.contains("custom-attr__avvalue")) {
             item.innerHTML = genAVValueHTML(cellData.value);
         } else {
-            updateAttrViewCellAnimation(item);
+            updateAttrViewCellAnimation(item, cellData.value);
         }
     });
     transaction(options.protyle, cellDoOperations, cellUndoOperations);
@@ -334,35 +334,39 @@ export const dragUpload = (files: string[], protyle: IProtyle, cellElement: HTML
         isUpload: true,
         id: protyle.block.rootID
     }, (response) => {
-        hideMessage(msgId);
-        const addUpdateValue: IAVCellAssetValue[] = [];
-        Object.keys(response.data.succMap).forEach(key => {
-            const type = pathPosix().extname(key).toLowerCase();
-            const name = key.substring(0, key.length - type.length);
-            if (Constants.SIYUAN_ASSETS_IMAGE.includes(type)) {
-                addUpdateValue.push({
-                    type: "image",
-                    name,
-                    content: response.data.succMap[key],
-                });
-            } else {
-                addUpdateValue.push({
-                    type: "file",
-                    name,
-                    content: response.data.succMap[key],
-                });
-            }
-        });
-        fetchPost("/api/av/renderAttributeView", {
-            id: avID,
-        }, (response) => {
-            updateAssetCell({
-                protyle,
-                data: response.data as IAV,
-                cellElements: [cellElement],
-                type: "addUpdate",
-                addUpdateValue
+        const blockElement = hasClosestBlock(cellElement);
+        if (blockElement) {
+            hideMessage(msgId);
+            const addUpdateValue: IAVCellAssetValue[] = [];
+            Object.keys(response.data.succMap).forEach(key => {
+                const type = pathPosix().extname(key).toLowerCase();
+                const name = key.substring(0, key.length - type.length);
+                if (Constants.SIYUAN_ASSETS_IMAGE.includes(type)) {
+                    addUpdateValue.push({
+                        type: "image",
+                        name,
+                        content: response.data.succMap[key],
+                    });
+                } else {
+                    addUpdateValue.push({
+                        type: "file",
+                        name,
+                        content: response.data.succMap[key],
+                    });
+                }
             });
-        });
+            fetchPost("/api/av/renderAttributeView", {
+                id: avID,
+                pageSize: parseInt(blockElement.getAttribute("data-page-size")) || undefined,
+            }, (response) => {
+                updateAssetCell({
+                    protyle,
+                    data: response.data as IAV,
+                    cellElements: [cellElement],
+                    type: "addUpdate",
+                    addUpdateValue
+                });
+            });
+        }
     });
 };

@@ -49,6 +49,7 @@ type TOperation =
     | "duplicateAttrViewView"
     | "sortAttrViewView"
     | "setAttrViewPageSize"
+    | "updateAttrViewColRelation"
 type TBazaarType = "templates" | "icons" | "widgets" | "themes" | "plugins"
 type TCardType = "doc" | "notebook" | "all"
 type TEventBus = "ws-main" | "sync-start" | "sync-end" | "sync-fail" |
@@ -264,7 +265,10 @@ interface ISearchOption {
         htmlBlock: boolean
         embedBlock: boolean
         databaseBlock: boolean
-    }
+    },
+    replaceTypes: {
+        [key: string]: boolean;
+    },
 }
 
 interface ITextOption {
@@ -436,6 +440,8 @@ interface IScrollAttr {
 interface IOperation {
     action: TOperation, // move， delete 不需要传 data
     id?: string,
+    isTwoWay?: boolean, // 是否双向关联
+    backRelationKeyID?: string, // 双向关联的目标关联列 ID
     avID?: string,  // av
     format?: string // updateAttrViewColNumberFormat 专享
     keyID?: string // updateAttrViewCell 专享
@@ -673,6 +679,10 @@ interface IAccount {
 }
 
 interface IConfig {
+    snippet: {
+        enabledCSS: boolean
+        enabledJS: boolean
+    }
     cloudRegion: number
     bazaar: {
         trust: boolean
@@ -974,7 +984,7 @@ interface IMenu {
     iconClass?: string,
     label?: string,
     click?: (element: HTMLElement, event: MouseEvent) => boolean | void | Promise<boolean | void>
-    type?: "separator" | "submenu" | "readonly",
+    type?: "separator" | "submenu" | "readonly" | "empty",
     accelerator?: string,
     action?: string,
     id?: string,
@@ -1073,7 +1083,8 @@ interface IAVColumn {
     options?: {
         name: string,
         color: string,
-    }[]
+    }[],
+    relation?: IAVCellRelationValue
 }
 
 interface IAVRow {
@@ -1091,7 +1102,7 @@ interface IAVCell {
 
 interface IAVCellValue {
     id?: string,
-    type?: TAVCol,
+    type: TAVCol,
     isDetached?: boolean,
     text?: {
         content: string
@@ -1123,6 +1134,10 @@ interface IAVCellValue {
     checkbox?: {
         checked: boolean
     }
+    relation?: {
+        blockIDs: string[]
+        contents?: string[]
+    }
     date?: IAVCellDateValue
     created?: IAVCellDateValue
     updated?: IAVCellDateValue
@@ -1146,4 +1161,10 @@ interface IAVCellAssetValue {
     content: string,
     name: string,
     type: "file" | "image"
+}
+
+interface IAVCellRelationValue {
+    avID?: string
+    backKeyID?: string
+    isTwoWay?: boolean
 }

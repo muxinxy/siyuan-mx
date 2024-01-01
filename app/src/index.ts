@@ -66,6 +66,9 @@ export class App {
                                 window.siyuan.config.editor.readOnly = data.data;
                                 hideAllElements(["util"]);
                                 break;
+                            case "setConf":
+                                window.siyuan.config = data.data;
+                                break;
                             case "progress":
                                 progressLoading(data);
                                 break;
@@ -163,7 +166,7 @@ export class App {
             }
             await loadPlugins(this);
             getLocalStorage(() => {
-                fetchGet(`/appearance/langs/${window.siyuan.config.appearance.lang}.json?v=${Constants.SIYUAN_VERSION}`, (lauguages) => {
+                fetchGet(`/appearance/langs/${window.siyuan.config.appearance.lang}.json?v=${Constants.SIYUAN_VERSION}`, (lauguages:IObject) => {
                     window.siyuan.languages = lauguages;
                     window.siyuan.menus = new Menus(this);
                     bootSync();
